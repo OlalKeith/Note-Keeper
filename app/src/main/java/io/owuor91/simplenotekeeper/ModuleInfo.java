@@ -25,7 +25,7 @@ public final class ModuleInfo implements Parcelable {
     private ModuleInfo(Parcel source) {
         mModuleId = source.readString();
         mTitle = source.readString();
-        mIsComplete = isComplete();
+        mIsComplete = source.readByte() == 1;
     }
 
 

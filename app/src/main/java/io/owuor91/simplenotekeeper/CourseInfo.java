@@ -19,10 +19,9 @@ public final class CourseInfo implements Parcelable {
         mCourseId = courseId;
         mTitle = title;
         mModules = modules;
-
     }
 
-    protected CourseInfo(Parcel source) {
+    private CourseInfo(Parcel source) {
         mCourseId = source.readString();
         mTitle = source.readString();
         mModules = new ArrayList<>();
@@ -62,7 +61,7 @@ public final class CourseInfo implements Parcelable {
         }
         return null;
     }
-// returns back the courses title
+
     @Override
     public String toString() {
         return mTitle;
@@ -83,7 +82,6 @@ public final class CourseInfo implements Parcelable {
     public int hashCode() {
         return mCourseId.hashCode();
     }
-
     @Override
     public int describeContents() {
         return 0;
@@ -98,6 +96,7 @@ public final class CourseInfo implements Parcelable {
 
     public static final Parcelable.Creator<CourseInfo> CREATOR =
             new Parcelable.Creator<CourseInfo>() {
+
                 @Override
                 public CourseInfo createFromParcel(Parcel source) {
                     return new CourseInfo(source);
@@ -108,4 +107,5 @@ public final class CourseInfo implements Parcelable {
                     return new CourseInfo[size];
                 }
             };
+
 }
