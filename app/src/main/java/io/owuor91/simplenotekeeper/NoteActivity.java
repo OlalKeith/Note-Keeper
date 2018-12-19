@@ -17,10 +17,12 @@ public class NoteActivity extends AppCompatActivity {
     public static final int DEFAULT_VALUE = -1;
     public static final int POSITION_NOT_SET = DEFAULT_VALUE;
     private NoteInfo mNote;
-    private boolean misNewNote;
+    private boolean mIsNewNote;
     private Spinner mSpinnerCourses;
     private EditText mTextNoteTitle;
     private EditText mTextNoteText;
+    private int mNotePosition;
+    private boolean mIsCancelling;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +45,30 @@ public class NoteActivity extends AppCompatActivity {
         mTextNoteText = findViewById(R.id.text_note_text);
 
         //display a mNote if there is actually a mNote
-        if (!misNewNote)
+        if (!mIsNewNote)
             displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //if not cancelling save note
+        if (mIsCancelling){
+            if (mIsNewNote){
+                DataManager.getInstance().removeNote(mNotePosition);
+            }
+        }else {
+            saveNote();
+        }
+
+    }
+
+    private void saveNote() {
+        mNote.setCourse((CourseInfo) mSpinnerCourses.getSelectedItem());
+        mNote.setTitle(mTextNoteTitle.getText().toString());
+        mNote.setText(mTextNoteText.getText().toString());
+
     }
 
     private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
@@ -58,9 +82,19 @@ public class NoteActivity extends AppCompatActivity {
     private void readDisplayStateValues() {
         Intent intent = getIntent();
         int position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
-        misNewNote = position == POSITION_NOT_SET;
-        if (!misNewNote)
+        mIsNewNote = position == POSITION_NOT_SET;
+        if (mIsNewNote){
+            createNewNote();
+        }else {
             mNote = DataManager.getInstance().getNotes().get(position);
+        }
+
+    }
+
+    private void createNewNote() {
+        DataManager dm = DataManager.getInstance();
+        mNotePosition = dm.createNewNote();
+        mNote = dm.getNotes().get(mNotePosition);
     }
 
     @Override
@@ -81,10 +115,15 @@ public class NoteActivity extends AppCompatActivity {
         if (id == R.id.action_send_mail) {
             sendEmail();
             return true;
+        }else if (id == R.id.action_cancel) {
+            mIsCancelling = true;
+            finish();
+
         }
 
         return super.onOptionsItemSelected(item);
     }
+
 
     private void sendEmail() {
         CourseInfo course = (CourseInfo) mSpinnerCourses.getSelectedItem();
