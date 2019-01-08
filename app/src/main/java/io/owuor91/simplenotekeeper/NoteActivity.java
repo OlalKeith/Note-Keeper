@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -13,7 +14,11 @@ import android.widget.Spinner;
 import java.util.List;
 
 public class NoteActivity extends AppCompatActivity {
+    private final String TAG = getClass().getSimpleName();
     public static final String NOTE_POSITION = "io.owuor91.simplenotekeeper.NOTE_POSITION";
+    public static final String ORIGINAL_NOTE_COURSE_ID = "io.owuor91.simplenotekeeper.ORIGINAL_NOTE_COURSE_ID";
+    public static final String ORIGINAL_NOTE_TITLE = "io.owuor91.simplenotekeeper.ORIGINAL_NOTE_TITLE";
+    public static final String ORIGINAL_NOTE_TEXT = "io.owuor91.simplenotekeeper.ORIGINAL_NOTE_TEXT";
     public static final int DEFAULT_VALUE = -1;
     public static final int POSITION_NOT_SET = DEFAULT_VALUE;
     private NoteInfo mNote;
@@ -23,6 +28,9 @@ public class NoteActivity extends AppCompatActivity {
     private EditText mTextNoteText;
     private int mNotePosition;
     private boolean mIsCancelling;
+    private String mOriginalNoteCourseId;
+    private String mOriginalNoteTitle;
+    private String mOriginalNoteText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +48,12 @@ public class NoteActivity extends AppCompatActivity {
         mSpinnerCourses.setAdapter(adapterCourses);
 
         readDisplayStateValues();
+        if (savedInstanceState == null){
+            saveOriginalNoteValues();
+        }else {
+            restoreOriginalNoteValues(savedInstanceState);
+        }
+
 
         mTextNoteTitle = findViewById(R.id.text_note_title);
         mTextNoteText = findViewById(R.id.text_note_text);
@@ -47,6 +61,21 @@ public class NoteActivity extends AppCompatActivity {
         //display a mNote if there is actually a mNote
         if (!mIsNewNote)
             displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
+        Log.d(TAG, "onCreate");
+    }
+
+    private void restoreOriginalNoteValues(Bundle savedInstanceState) {
+        mOriginalNoteCourseId = savedInstanceState.getString(ORIGINAL_NOTE_COURSE_ID);
+        mOriginalNoteText = savedInstanceState.getString(ORIGINAL_NOTE_TEXT);
+        mOriginalNoteTitle = savedInstanceState.getString(ORIGINAL_NOTE_TITLE);
+    }
+
+    private void saveOriginalNoteValues() {
+        if (mIsNewNote)
+            return;
+        mOriginalNoteCourseId = mNote.getCourse().getCourseId();
+        mOriginalNoteTitle = mNote.getTitle();
+        mOriginalNoteText = mNote.getText();
     }
 
 
@@ -55,13 +84,31 @@ public class NoteActivity extends AppCompatActivity {
         super.onPause();
         //if not cancelling save note
         if (mIsCancelling){
+            Log.i(TAG, "Cancelling not at position: " + mNotePosition);
             if (mIsNewNote){
                 DataManager.getInstance().removeNote(mNotePosition);
+            }else {
+                storePreviousNoteValues();
             }
         }else {
             saveNote();
         }
+        Log.d(TAG, "onPause" );
+    }
 
+    private void storePreviousNoteValues() {
+        CourseInfo course = DataManager.getInstance().getCourse(mOriginalNoteCourseId);
+        mNote.setCourse(course);
+        mNote.setTitle(mOriginalNoteTitle);
+        mNote.setText(mOriginalNoteText);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ORIGINAL_NOTE_COURSE_ID, mOriginalNoteCourseId);
+        outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNoteText);
+        outState.putString(ORIGINAL_NOTE_TITLE, mOriginalNoteTitle);
     }
 
     private void saveNote() {
@@ -86,6 +133,7 @@ public class NoteActivity extends AppCompatActivity {
         if (mIsNewNote){
             createNewNote();
         }else {
+            Log.i(TAG, "mNotePosition: " + mNotePosition);
             mNote = DataManager.getInstance().getNotes().get(position);
         }
 
