@@ -174,6 +174,13 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private void moveNext() {
+        saveNote();
+
+        ++mNotePosition;
+        mNote = DataManager.getInstance().getNotes().get(mNotePosition);
+
+        saveOriginalNoteValues();
+        displayNote(mSpinnerCourses,mTextNoteTitle, mTextNoteText);
 
     }
 
