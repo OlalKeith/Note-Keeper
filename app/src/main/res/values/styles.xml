@@ -21,4 +21,9 @@
         <item name="android:textColor">@color/pluralsight_orange</item>
         <item name="android:textStyle">bold</item>
     </style>
+    
+    <style name="AddFab" parent="@style/Widget.Design.FloatingActionButton">
+        <item name="android:tint">@android:color/white</item>
+
+    </style>
 </resources>
